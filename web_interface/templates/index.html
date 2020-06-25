@@ -1,0 +1,119 @@
+{% extends "bootstrap/base.html" %}
+
+{% block styles %}
+    {{super()}}
+    {{ dropzone.load_css() }}
+    <link rel="stylesheet" href="{{url_for('static', filename='css/style.css')}}">
+{% endblock %}
+
+{% block scripts %}
+    {{super()}}
+    <script type="text/javascript" src="{{url_for('static', filename='js/myscripts.js')}}"></script>
+{% endblock %}
+
+{% block title %}
+    Car model detection
+{% endblock %}
+
+{% block content %}
+    <!-- Modal -->
+    <div class="modal fade" id="loadingModal" tabindex="-1" role="dialog" aria-labelledby="loadingModalLabel" aria-hidden="true">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="loadingModalLabel">Performing detection...</h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <div class="modal-body">
+            <img src="/static/img/loader.gif" id="loaderImg"> 
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="container" id="content">
+      <div class="row">
+        <div class="col-md-4">
+          <div class="group-model">
+            <p>Current model: {{ model_name }}</p>
+            <div class="btn-group">
+              <a class="btn btn-primary dropdown-toggle" data-toggle="dropdown" href="">Select a Classification Model <span class="caret"></span></a>
+              <ul class="dropdown-menu">
+                <li><a href="">ResNet34</a></li>
+                <!-- <li><a href="">ResNet50</a></li> -->
+                <li><a href="">SE ResNet34</a></li>
+                <!-- <li><a href="">SE ResNet50</a></li> -->
+                <li><a href="">CBAM ResNet34</a></li>
+                <!-- <li><a href="">CBAM ResNet50</a></li> -->
+              </ul>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-4">
+          {{ dropzone.create(action='main_view') }}
+          {{ dropzone.load_js() }}
+          {{ dropzone.config(custom_init='this.on("queuecomplete", function (file) {
+              $("#loadingModal").modal("show");
+            });') }}
+        </div>
+        <div class="col-md-4"></div>
+      </div>
+      <div class="row">
+          {% for image in default_uploads %}
+              <div class="col-lg-2 col-md-2 col-xs-2 thumb default-uploads">
+                  <a class="thumbnail" href="">
+                      <img class="img-responsive upload-img" src="/static/img/default_uploads/{{ image }}" alt="">
+                  </a>
+              </div>
+          {% endfor %}
+      </div>
+
+
+      {% if images | length >= 1 %}
+          <div class="row align-items-end prediction-row">
+              <div class="col-md-8">
+                  <div class="product-slider">
+                      <div id="carousel" class="carousel slide" data-ride="carousel" data-interval="false">
+                          <div class="carousel-inner">
+                              {% for image, (class_names, scores) in images | zip(classes) %}
+                                  <div class="item {% if loop.index == 1 %} active {% endif %}">
+                                      {% if loop.index != 1 and score == (-1) %}{% continue %}{% endif %}
+                                      {% if loop.index != 1 %}
+                                          {% if loop.index is divisibleby 2 %}
+                                              <div class="detected-label">{{ class_names[0] + ' ' + scores[0]  + '%' }}</div>
+                                          {% else %}
+                                              <div class="detected-label">{{ 'HEATMAP ' + class_names[0] + ' ' + scores[0]  + '%' }}</div>
+                                          {% endif %} 
+                                      {% endif %}
+                                      <img src="/static/img/predicted/{{ image }}"> 
+                                  </div>
+                              {% endfor %}
+                          </div>
+                      </div>
+                      <div class="clearfix">
+                          <div id="thumbcarousel" class="carousel slide" data-interval="false">
+                              <div class="carousel-inner">
+                                  <div class="item active">
+                                      {% for image, (class_names, scores) in images | zip(classes) %}
+                                          <div data-target="#carousel" data-slide-to="{{ loop.index - 1 }}" class="thumb" 
+                                                  class_names="{{ class_names }}" scores="{{ scores }}">
+                                              <img src="/static/img/predicted/{{ image }}">
+                                          </div>
+                                      {% endfor %} 
+                                  </div>
+                              </div>
+                          <!-- /carousel-inner --> 
+                          </div>          
+                      </div>
+                  </div>
+              </div>
+              <div class="col-md-4 top-pred-col">
+              </div>
+          </div>
+      {% endif %}
+    </div>
+    <br>
+    <br>
+{% endblock %}

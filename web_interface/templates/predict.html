@@ -1,0 +1,54 @@
+{% extends "index.html" %}
+
+{% block page_content %}
+    {% if images | length >= 1 %}
+        <div class="row align-items-end prediction-row">
+            <div class="col-md-8">
+                <div class="product-slider">
+                    <div id="carousel" class="carousel slide" data-ride="carousel" data-interval="false">
+                        <div class="carousel-inner">
+                            {% for image, (class_names, scores) in images | zip(classes) %}
+                                <div class="item {% if loop.index == 1 %} active {% endif %}">
+                                    {% if loop.index != 1 and score == (-1) %}{% continue %}{% endif %}
+                                    {% if loop.index != 1 %}
+                                        {% if loop.index is divisibleby 2 %}
+                                            <div class="detected-label">{{ class_names[0] + ' ' + scores[0]  + '%' }}</div>
+                                        {% else %}
+                                            <div class="detected-label">{{ 'HEATMAP ' + class_names[0] + ' ' + scores[0]  + '%' }}</div>
+                                        {% endif %} 
+                                    {% endif %}
+                                    <img src="/static/img/predicted/{{ image }}"> 
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    <div class="clearfix">
+                        <div id="thumbcarousel" class="carousel slide" data-interval="false">
+                            <div class="carousel-inner">
+                                <div class="item active">
+                                    {% for image, (class_names, scores) in images | zip(classes) %}
+                                        <div data-target="#carousel" data-slide-to="{{ loop.index - 1 }}" class="thumb" 
+                                                class_names="{{ class_names }}" scores="{{ scores }}">
+                                            <img src="/static/img/predicted/{{ image }}">
+                                        </div>
+                                    {% endfor %} 
+                                </div>
+                            </div>
+                        <!-- /carousel-inner --> 
+                        </div>          
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 top-pred-col">
+            </div>
+            <!-- {% if images | length == 1 %}
+                <div class="col-md-4">
+                        <form action="/predict" method=post>
+                            <button id="predict" type="submit" class="btn btn-primary">Predict</button>
+                        </form>
+                </div>
+            {% endif %} -->
+        </div>
+    {% endif %}
+
+{% endblock %}

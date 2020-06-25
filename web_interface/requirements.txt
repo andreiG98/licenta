@@ -1,0 +1,6 @@
+Flask
+flask-socketio
+eventlet
+gunicorn
+flask_bootstrap
+flask_dropzone
